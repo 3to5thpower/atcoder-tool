@@ -81,13 +81,13 @@ def choose_cases(page_org):
     for element in page:
         ele_h3 = element.findChild("h3")
         ele_pre = element.findChild("pre")
-        if 'Sample' not in str(ele_h3):
+        if '入力例' not in str(ele_h3) and '出力例' not in str(ele_h3):
             continue
-        if 'Input' in str(ele_h3):
+        if '入力例' in str(ele_h3):
             case = {}
-            case["input"] = str(ele_pre).lstrip("<pre>").rstrip("</pre>").replace('\r\n','\n')
+            case["input"] = str(ele_pre).lstrip("<pre>").rstrip("</pre>").replace('\r\n','\n').lstrip("\n")
         else:
-            case["output"] = str(ele_pre).lstrip("<pre>").rstrip("</pre>").replace('\r\n', '\n')
+            case["output"] = str(ele_pre).lstrip("<pre>").rstrip("</pre>").replace('\r\n', '\n').lstrip("\n")
             res.append(case)
     return res
 
@@ -103,50 +103,63 @@ def read_case(problem_id, contest_id, config):
 
 def judge(testcases, problem_id, contest_id):
     print(CYAN + "Judging " + contest_id + "_" + problem_id + "..." + COLORRESET)
-    res = {"AC":0, "WA":0, "TLE":0}
     for i, case in enumerate(testcases):
         print("case " + str(i+1) + ": ", end="")
-        proc = subprocess.Popen("./a.out", stdout=subprocess.PIPE,
-            stdin=subprocess.PIPE, shell=True)
-        proc.stdin.write(case["input"].encode())
-        proc.stdin.flush()
-        proc.stdout.flush()
-        try:
-            proc.wait(2)
-            ans = proc.stdout.read().decode().replace("\r\n","\n")
-            out = case["output"].replace("\r\n","\n")
-            if out == ans:
-                res["AC"]+=1
-                print(GREEN + "AC" + COLORRESET)
-            elif isfloat(out) and isfloat(ans):
-                d = abs(float(out)-float(ans))
-                r = d / float(out)
-                if d <= 0.000001 and r <= 0.000001:
-                    res["AC"]+=1
-                    print(GREEN + "AC" + COLORRESET)
-                else:
-                    res["WA"]+=1
-                    print(YELLOW + "WA" + COLORRESET)
-                    print(RED + " predicted:"+ ans.rstrip('\r\n') + "\n" + 
-                        " result:" + out.rstrip('\r\n') + COLORRESET)
-            else:
-                res["WA"] += 1
-                print(YELLOW + "WA" + COLORRESET)
-                print(RED + " predicted:"+ ans.rstrip('\r\n') + "\n" + 
-                    " result:" + out.rstrip('\r\n') + COLORRESET)
-        except:
-            res["TLE"]+=1
+        res = execute(case)
+        if res[0] == "AC":
+            print(GREEN + "AC" + COLORRESET)
+        elif res[0] == "WA":
+            print(YELLOW + "WA" + COLORRESET)
+            print(RED + " predicted:"+ res[1].rstrip('\r\n') + "\n" + 
+                " result:" + res[2].rstrip('\r\n') + COLORRESET)
+        else:
             print(YELLOW + "TLE" + COLORRESET)
-            proc.terminate()
     return ExitStatus.SUCCESS
 
-def testing(problem_id, config):
+def execute(case):
+    proc = subprocess.Popen("./a.out",stdout=subprocess.PIPE,
+        stdin=subprocess.PIPE, shell=True)    
+    proc.stdin.write(case["input"].encode())
+    proc.stdin.flush()
+    proc.stdout.flush()
+    try:
+        proc.wait(2)
+        ans = proc.stdout.read().decode().replace("\r\n","\n")
+        out = case["output"].replace("\r\n","\n")
+        if out == ans:
+            return ("AC", ans, out)
+        elif isfloat(out) and isfloat(ans):
+            d = abs(float(out)-float(ans))
+            r = d / float(out)
+            if d <= 0.000001 and r <= 0.000001:
+                return ("AC", ans, out)
+            else: 
+                return ("WA", ans, out)
+        else:
+            return ("WA", ans, out)
+    except:
+        proc.terminate()
+        return ("TLE", ans, out)
+
+
+def compiling(problem_id, config):
     filename = "{id}{ext}".format(id=problem_id, ext=config["language"]["filename_ext"])
-    contest_id = os.path.basename(os.getcwd())
     res = subprocess.run([config["language"]["compile_cmd"], filename])
-    
     if res.returncode != 0:
         return ExitStatus.UNABLE_TO_EXEC
+    return ExitStatus.SUCCESS
 
+
+def compare_cases(testcases, problem_id, config):
+    status = compiling(problem_id, config)
+    if status != ExitStatus.SUCCESS:
+        return status
+    return all(map(lambda case : execute(case)[0]=="AC", testcases))
+
+def testing(problem_id, config):
+    status = compiling(problem_id, config)
+    if status != ExitStatus.SUCCESS:
+        return status
+    contest_id = os.path.basename(os.getcwd())
     testcases = read_case(problem_id,contest_id, config)
     return judge(testcases, problem_id, contest_id)

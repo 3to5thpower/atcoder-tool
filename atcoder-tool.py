@@ -96,12 +96,13 @@ class Submit(Command):
 
     def build_option(self, parser):
         parser.add_argument("problem_id")
+        parser.add_argument("-f", "--force", action="store_true")
         return parser
 
     def run(self, args):
-        return submitting(args.problem_id)
+        return submitting(args.problem_id, not args.force)
         
-def submitting(problem_id):
+def submitting(problem_id, testing):
     config = conf.read_config()
     contest_id = os.path.basename(os.getcwd())
     filename = "{id}{ext}".format(id=problem_id, ext=config["language"]["filename_ext"])
@@ -109,7 +110,7 @@ def submitting(problem_id):
     with open(filename) as f:
         codes = f.read()
     
-    status = com.submit(codes, problem_id, contest_id, config)
+    status = com.submit(codes, problem_id, contest_id, config, testing)
     if status == ExitStatus.SUCCESS:
         subprocess.run(["xdg-open", com.ATCODER_ENDPOINT+contest_id+"/submissions/me"])
         

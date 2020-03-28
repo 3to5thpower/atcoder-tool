@@ -6,6 +6,7 @@ from uroboros import ExitStatus
 import toml
 import getpass
 import config as conf
+import test
 
 ATCODER_ENDPOINT = "https://atcoder.jp/contests/"
 COOKIE_FILE = os.path.expanduser(conf.read_config()["session"]["cookie_file_path"])
@@ -54,7 +55,14 @@ def make_session(config):
         session = make_newsession(config)
     return session
 
-def submit(codes, problem_id, contest_id, config):
+def submit(codes, problem_id, contest_id, config, testing):
+    if testing:
+        testcase = test.read_case(problem_id, contest_id, config)
+        res = test.compare_cases(testcase, problem_id, config)
+        if not res:
+            print("Some sample was wrong answer.")
+            return ExitStatus.FAILURE
+    
     session = make_session(config)
     
     tar = ATCODER_ENDPOINT + contest_id + "/submit"
