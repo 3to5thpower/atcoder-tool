@@ -1,7 +1,7 @@
 import toml
 import os
 
-CONFIG_PATH = os.path.expanduser("~") + "/.config/atcoder-tool.toml"
+CONFIG_PATH = os.path.expanduser("~/.config/atcoder-tool.toml")
 default_config = {
     "language": {
         "lang": "cpp",
