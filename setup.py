@@ -1,9 +1,13 @@
-from setuptools import setup
+from setuptools import setup, find_packages
+
+with open("requirements.txt") as f:
+    req=f.read().splitlines()
 
 setup(
     name="atcoder-tool",
     version="0.1",
-    install_requires=["requests", "beautifulsoup4", "bs4", "uroboros", "toml", "lxml"],
+    packages=find_packages(),
+    install_requires=req,
     entry_points={
         "console_scripts":[
             "atcoder_tool = atcodertool.main:main"
