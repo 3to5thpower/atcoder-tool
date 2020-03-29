@@ -1,7 +1,9 @@
+import os, subprocess
+
 from uroboros import Command
 from uroboros.constants import ExitStatus
-import os, subprocess
-import test
+
+import test as test
 import communication as com
 import config as conf
 
@@ -88,7 +90,7 @@ class Login(Command):
         if os.path.exists(com.COOKIE_FILE):
             print("you have already logged in atcoder.")
             return ExitStatus.UNABLE_TO_EXEC
-        com.make_newsession(conf.read_config())
+        com.new_session(conf.read_config())
         return ExitStatus.SUCCESS
 
 class Submit(Command):

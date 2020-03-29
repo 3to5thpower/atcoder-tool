@@ -15,4 +15,4 @@ toml = "*"
 python_version = "3.8"
 
 [scripts]
-start = "python atcoder_tool/main.py"
+start = "python atcoder_tool/atcoder_tool.py"
