@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 from uroboros import ExitStatus
 import toml
 import getpass
-import config as conf
+import atcoder_tool.config as conf
 
 ATCODER_ENDPOINT = "https://atcoder.jp/contests/"
 COOKIE_FILE = os.path.expanduser(conf.read_config()["session"]["cookie_file_path"])

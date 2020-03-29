@@ -3,9 +3,9 @@ import os, subprocess
 from uroboros import Command
 from uroboros.constants import ExitStatus
 
-import test as test
-import communication as com
-import config as conf
+import atcoder_tool.test as test
+import atcoder_tool.communication as com
+import atcoder_tool.config as conf
 
 
 class RootCommand(Command):
@@ -142,4 +142,7 @@ root_cmd.add_command(Submit())
 root_cmd.add_command(Logout())
 
 if __name__ == '__main__':
+    exit(root_cmd.execute())
+
+def main():
     exit(root_cmd.execute())
