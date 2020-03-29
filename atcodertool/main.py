@@ -20,7 +20,7 @@ class RootCommand(Command):
     def run(self, args):
         if args.version:
             print("{name} v{version}".format(
-                name=self.name, version="1.0.0"))
+                name=self.name, version="0.0.1"))
         else:
             self.print_help()
         return ExitStatus.SUCCESS
