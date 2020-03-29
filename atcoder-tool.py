@@ -107,10 +107,17 @@ def submitting(problem_id, testing):
     contest_id = os.path.basename(os.getcwd())
     filename = "{id}{ext}".format(id=problem_id, ext=config["language"]["filename_ext"])
 
+    if testing:
+        testcase = test.read_case(problem_id, contest_id, config)
+        res = test.compare_cases(testcase, problem_id, config)
+        if not res:
+            print("Some sample was wrong answer.")
+            return ExitStatus.FAILURE
+    
     with open(filename) as f:
         codes = f.read()
-    
-    status = com.submit(codes, problem_id, contest_id, config, testing)
+
+    status = com.submit(codes, problem_id, contest_id, config)
     if status == ExitStatus.SUCCESS:
         subprocess.run(["xdg-open", com.ATCODER_ENDPOINT+contest_id+"/submissions/me"])
         

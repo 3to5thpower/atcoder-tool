@@ -6,13 +6,12 @@ from uroboros import ExitStatus
 import toml
 import getpass
 import config as conf
-import test
 
 ATCODER_ENDPOINT = "https://atcoder.jp/contests/"
 COOKIE_FILE = os.path.expanduser(conf.read_config()["session"]["cookie_file_path"])
 LOGIN_URL = "https://atcoder.jp/login"
 
-def make_newsession(config):
+def new_session(config):
     session = requests.session()
     # csrf_token取得
     r = session.get(LOGIN_URL)
@@ -52,17 +51,12 @@ def make_session(config):
             session = requests.session()
             session.cookies.update(c)
     else:
-        session = make_newsession(config)
+        session = new_session(config)
     return session
 
-def submit(codes, problem_id, contest_id, config, testing):
-    if testing:
-        testcase = test.read_case(problem_id, contest_id, config)
-        res = test.compare_cases(testcase, problem_id, config)
-        if not res:
-            print("Some sample was wrong answer.")
-            return ExitStatus.FAILURE
-    
+
+
+def submit(codes, problem_id, contest_id, config):
     session = make_session(config)
     
     tar = ATCODER_ENDPOINT + contest_id + "/submit"
