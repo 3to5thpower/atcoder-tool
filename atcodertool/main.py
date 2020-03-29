@@ -135,10 +135,10 @@ class Logout(Command):
 
 # Create command tree
 root_cmd = RootCommand()
-root_cmd.add_command(Run())
-root_cmd.add_command(Test())
-root_cmd.add_command(New())
 root_cmd.add_command(Login())
+root_cmd.add_command(New())
+root_cmd.add_command(Test())
+root_cmd.add_command(Run())
 root_cmd.add_command(Submit())
 root_cmd.add_command(Logout())
 
