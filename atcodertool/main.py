@@ -3,9 +3,9 @@ import os, subprocess
 from uroboros import Command
 from uroboros.constants import ExitStatus
 
-import atcoder_tool.test as test
-import atcoder_tool.communication as com
-import atcoder_tool.config as conf
+import atcodertool.test as test
+import atcodertool.communication as com
+import atcodertool.config as conf
 
 
 class RootCommand(Command):

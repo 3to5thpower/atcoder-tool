@@ -6,7 +6,7 @@ setup(
     install_requires=["requests", "beautifulsoup4", "uroboros", "toml", "lxml"],
     entry_points={
         "console_scripts":[
-            "atcoder_tool = atcoder-tool.atcoder-tool:main"
+            "atcoder_tool = atcodertool.main:main"
         ]
     }
 )
