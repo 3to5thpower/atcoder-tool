@@ -5,8 +5,8 @@ import pickle
 import subprocess
 from uroboros.constants import ExitStatus
 
-from atcodertool.communication import ATCODER_ENDPOINT,COOKIE_FILE 
-import atcodertool.communication as com
+from communication import ATCODER_ENDPOINT,COOKIE_FILE 
+import communication as com
 
 TESTCASES_PATH = "test_case"
 
