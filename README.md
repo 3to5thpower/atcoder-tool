@@ -4,7 +4,7 @@ atcoderのテストと提出をするやつ
 完全に自分用です
 
 ## How to install
-`pip3 install -U git+https://3to5thpower/atcoder_tool.git`
+`pip3 install -U git+https://github.com/3to5thpower/atcoder_tool.git`
 
 -Uオプションを付けないと途中で止まるので仕方なく付けています。
 
