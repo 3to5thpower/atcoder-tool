@@ -63,22 +63,33 @@ class New(Command):
 
     def build_option(self, parser):
         parser.add_argument("contest_id",help="contest name (e.g. abc042)")
-        parser.add_argument("-p","--problems",default=6, type=int)
+        parser.add_argument("-p","--problems", default=0, type=int)
         return parser
 
     def run(self, args):
         config = conf.read_config()
         dirname = args.contest_id
-        subprocess.run(["mkdir", dirname])
-        subprocess.run(["mkdir","{dir}/test_case".format(dir=dirname)])
-        alphabets = [chr(ord("a") + i) for i in range(26)]
-        for i in range(args.problems):
-            c = alphabets[i]
-            filename = "{id}{ext}".format(id=c, ext=config["language"]["filename_ext"])
-            with open(dirname + "/" + filename,"x") as f:
-                f.write(config["template"]["template"])
-                f.close()
-    
+
+        os.makedirs(os.path.join(dirname, test.TESTCASES_PATH))
+
+        info = com.contest_info(dirname, config)
+        if info == []:
+            if args.problems == 0:
+                print("could not find contest. please put the number of problems with `--problems`")
+                os.removedirs(os.path.join(dirname, test.TESTCASES_PATH))
+                return ExitStatus.FAILURE
+            else:
+                alphabets = [chr(ord("a") + i) for i in range(26)]
+                for i in range(args.problems):
+                    c = alphabets[i]
+                    filename = "{id}{ext}".format(id=c, ext=config["language"]["filename_ext"])
+                    with open(dirname + "/" + filename,"x") as f:
+                        f.write(config["template"]["template"])
+        else:
+            for p in info:
+                filename = "{id}{ext}".format(id=p,ext=config["language"]["filename_ext"])
+                with open(dirname + "/" + filename, "x") as f:
+                    f.write(config["template"]["template"])
         return ExitStatus.SUCCESS
 
 class Login(Command):

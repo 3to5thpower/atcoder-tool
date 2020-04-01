@@ -3,13 +3,15 @@ import pickle
 import requests
 from bs4 import BeautifulSoup
 from uroboros import ExitStatus
-import toml
+from urllib import parse
+import toml, json
 import getpass
 import atcodertool.config as conf
 
 ATCODER_ENDPOINT = "https://atcoder.jp/contests/"
 COOKIE_FILE = os.path.expanduser(conf.read_config()["session"]["cookie_file_path"])
 LOGIN_URL = "https://atcoder.jp/login"
+INFO_DIR_PATH = ".atcoder_tool"
 
 def new_session(config):
     session = requests.session()
@@ -58,7 +60,7 @@ def make_session(config):
 
 def submit(codes, problem_id, contest_id, config):
     session = make_session(config)
-    
+    info = contest_info(contest_id, config)    
     tar = ATCODER_ENDPOINT + contest_id + "/submit"
 
     html = session.get(tar)
@@ -67,7 +69,7 @@ def submit(codes, problem_id, contest_id, config):
     csrf_token = soup.find(attrs={"name": "csrf_token"}).get("value")
 
     submit_info = {
-        "data.TaskScreenName": contest_id + "_" + problem_id,
+        "data.TaskScreenName": info[problem_id]["url"],
         "csrf_token": csrf_token,
         "data.LanguageId": int(config["language"]["lang_id"]),
         "sourceCode": codes
@@ -80,3 +82,59 @@ def submit(codes, problem_id, contest_id, config):
         return ExitStatus.FAILURE
     return ExitStatus.SUCCESS
 
+def contest_info(contest_id, config):
+    info_file = os.path.join(INFO_DIR_PATH, "contest_info.json")
+    if os.path.split(os.getcwd())[1] != contest_id:
+        info_file = os.path.join(contest_id, info_file)
+
+    if os.path.exists(info_file):
+        with open(info_file, "r") as f:
+            info = json.load(f)
+        return info
+    session = make_session(config)
+    page = session.get(ATCODER_ENDPOINT + contest_id + "/tasks")
+    table = BeautifulSoup(page.text, "lxml").find("tbody")
+    if table == None:
+        return []
+    table = table.find_all("td")
+    num = len(table) / 5
+    num = int(num)
+    problems = {}
+    for i in range(num):
+        problem = {}
+        pid = table[i*5].text.lower()
+        url = table[i*5+1].a.get("href")
+        problem["url"] = os.path.split(parse.urlparse(url).path)[1]
+        problem["tle"] = int(table[i*5+2].text[:-3])
+        problem["mle"] = int(table[i*5+3].text[:-2])
+        problems[pid] = problem
+    with open(info_file, "x") as f:
+        json.dump(problems, f, indent=4)
+    return problems
+
+def scrape_page(problem_id, contest_id, config):
+    info = contest_info(contest_id, config)
+    session = make_session(config)
+    page = session.get(ATCODER_ENDPOINT + contest_id + 
+        "/tasks/" + info[problem_id]["url"])
+    testcase = choose_cases(page)
+    return testcase
+
+def choose_cases(page_org):
+    """取得した問題のページから問題部分を抽出する"""
+
+    page = BeautifulSoup(page_org.text, 'lxml').find_all(class_ = "part")
+    res = []
+    case = {}
+    for element in page:
+        ele_h3 = element.findChild("h3")
+        ele_pre = element.findChild("pre")
+        if '入力例' not in str(ele_h3) and '出力例' not in str(ele_h3):
+            continue
+        if '入力例' in str(ele_h3):
+            case = {}
+            case["input"] = str(ele_pre).lstrip("<pre>").rstrip("</pre>").replace('\r\n','\n').lstrip("\n")
+        else:
+            case["output"] = str(ele_pre).lstrip("<pre>").rstrip("</pre>").replace('\r\n', '\n').lstrip("\n")
+            res.append(case)
+    return res
