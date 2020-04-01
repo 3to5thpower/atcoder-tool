@@ -8,7 +8,7 @@ from uroboros.constants import ExitStatus
 from atcodertool.communication import ATCODER_ENDPOINT,COOKIE_FILE 
 import atcodertool.communication as com
 
-TESTCASES_PATH = "test_case"
+TESTCASES_PATH = com.INFO_DIR_PATH
 
 RED = "\033[31m"
 GREEN = "\033[32m"
@@ -65,39 +65,13 @@ def write_file(file_name, testcases):
             f.write(q["output"])
             f.write("---fin---\n")
 
-def scrape_page(problem_id, contest_id, config):
-    session = com.make_session(config)
-    page = session.get(ATCODER_ENDPOINT + contest_id + 
-        "/tasks/" + contest_id + "_" + problem_id)
-    testcase = choose_cases(page)
-    return testcase
-
-def choose_cases(page_org):
-    """取得した問題のページから問題部分を抽出する"""
-
-    page = BeautifulSoup(page_org.text, 'lxml').find_all(class_ = "part")
-    res = []
-    case = {}
-    for element in page:
-        ele_h3 = element.findChild("h3")
-        ele_pre = element.findChild("pre")
-        if '入力例' not in str(ele_h3) and '出力例' not in str(ele_h3):
-            continue
-        if '入力例' in str(ele_h3):
-            case = {}
-            case["input"] = str(ele_pre).lstrip("<pre>").rstrip("</pre>").replace('\r\n','\n').lstrip("\n")
-        else:
-            case["output"] = str(ele_pre).lstrip("<pre>").rstrip("</pre>").replace('\r\n', '\n').lstrip("\n")
-            res.append(case)
-    return res
-
 
 def read_case(problem_id, contest_id, config):
     case_file = problem_id + ".txt"
     if case_file in os.listdir(TESTCASES_PATH):
         cases = read_file(case_file)
     else:
-        cases = scrape_page(problem_id,contest_id, config)
+        cases = com.scrape_page(problem_id,contest_id, config)
         write_file(case_file, cases)
     return cases
 
