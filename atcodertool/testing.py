@@ -113,7 +113,7 @@ def execute(case):
             return ("WA", ans, out)
     except:
         proc.terminate()
-        return ("TLE", None, out)
+        return ("TLE", None, None)
 
 
 def compiling(problem_id, config):
