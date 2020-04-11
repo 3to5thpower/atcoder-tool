@@ -101,7 +101,7 @@ def execute(case, config):
         return "RE"
     else:
         #out = proc.stdout.replace("\r\n", "\n")
-        return proc.stdout
+        return proc.stdout#.rstrip("\r\n ")
 
 def compare(case, config):
         out = execute(case, config)
@@ -110,7 +110,7 @@ def compare(case, config):
         if out == "RE":
             return (out, None)
 
-        ans = case["output"].replace("\r\n","\n")
+        ans = case["output"]#.replace("\r\n","\n")
         if out == ans:
             return ("AC", None)
         elif isfloat(out) and isfloat(ans):

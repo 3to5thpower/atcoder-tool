@@ -144,8 +144,8 @@ def choose_cases(page_org):
             continue
         if '入力例' in str(ele_h3):
             case = {}
-            case["input"] = str(ele_pre).lstrip("<pre>").rstrip("</pre>").replace('\r\n','\n').lstrip("\n")
+            case["input"] = ele_pre.text.lstrip("\r\n ").rstrip("\r\n ") + "\n"
         else:
-            case["output"] = str(ele_pre).lstrip("<pre>").rstrip("</pre>").replace('\r\n', '\n').lstrip("\n")
+            case["output"] = ele_pre.text.lstrip("\r\n ").rstrip("\r\n ") + "\n"
             res.append(case)
     return res
