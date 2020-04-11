@@ -67,15 +67,20 @@ def submit(codes, problem_id, contest_id, config):
     html.raise_for_status()
     soup = BeautifulSoup(html.text, "lxml")
     csrf_token = soup.find(attrs={"name": "csrf_token"}).get("value")
+    
+    for d in soup.find_all("option"):
+        if "GCC" in d.text and "C++" in d.text:
+            lang_id = d.get("value")
+            break
 
     submit_info = {
         "data.TaskScreenName": info[problem_id]["url"],
         "csrf_token": csrf_token,
-        "data.LanguageId": int(config["language"]["lang_id"]),
+        "data.LanguageId":  lang_id,  #int(config["language"]["lang_id"]),
         "sourceCode": codes
     }
     res = session.post(tar, data=submit_info)
-    res.raise_for_status()
+    #res.raise_for_status()
     if res.status_code != 200:
         print("Failed to submit source codes.")
         print("HTTP status code is {res}".format(res=res))
