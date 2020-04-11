@@ -75,11 +75,11 @@ def read_case(problem_id, contest_id, config):
         write_file(case_file, cases)
     return cases
 
-def judge(testcases, problem_id, contest_id):
+def judge(testcases, problem_id, contest_id, config):
     print(CYAN + "Judging " + contest_id + "_" + problem_id + "..." + COLORRESET)
     for i, case in enumerate(testcases):
         print("case " + str(i+1) + ": ", end="")
-        res = execute(case)
+        res = execute(case, config)
         if res[0] == "AC":
             print(GREEN + "AC" + COLORRESET)
         elif res[0] == "WA":
@@ -90,8 +90,8 @@ def judge(testcases, problem_id, contest_id):
             print(YELLOW + "TLE" + COLORRESET)
     return ExitStatus.SUCCESS
 
-def execute(case):
-    proc = subprocess.Popen("./a.out",stdout=subprocess.PIPE,
+def execute(case, config):
+    proc = subprocess.Popen(config["language"]["exe_cmd"],stdout=subprocess.PIPE,
         stdin=subprocess.PIPE, shell=True)    
     proc.stdin.write(case["input"].encode())
     proc.stdin.flush()
@@ -118,7 +118,7 @@ def execute(case):
 
 def compiling(problem_id, config):
     filename = "{id}{ext}".format(id=problem_id, ext=config["language"]["filename_ext"])
-    res = subprocess.run([config["language"]["compile_cmd"], filename])
+    res = subprocess.run([config["language"]["compile_cmd"], config["language"]["compile_opt"], filename])
     if res.returncode != 0:
         return ExitStatus.UNABLE_TO_EXEC
     return ExitStatus.SUCCESS
@@ -128,12 +128,13 @@ def compare_cases(testcases, problem_id, config):
     status = compiling(problem_id, config)
     if status != ExitStatus.SUCCESS:
         return status
-    return all(map(lambda case : execute(case)[0]=="AC", testcases))
+    return all(map(lambda case : execute(case, config)[0]=="AC", testcases))
 
 def testing(problem_id, config):
-    status = compiling(problem_id, config)
-    if status != ExitStatus.SUCCESS:
-        return status
+    if config["language"]["compiling"]:
+        status = compiling(problem_id, config)
+        if status != ExitStatus.SUCCESS:
+            return status
     contest_id = os.path.basename(os.getcwd())
     testcases = read_case(problem_id,contest_id, config)
-    return judge(testcases, problem_id, contest_id)
+    return judge(testcases, problem_id, contest_id, config)
