@@ -3,6 +3,7 @@ import requests
 from bs4 import BeautifulSoup
 import pickle
 import subprocess
+import signal
 from uroboros.constants import ExitStatus
 
 from atcodertool.communication import ATCODER_ENDPOINT,COOKIE_FILE 
@@ -79,56 +80,66 @@ def judge(testcases, problem_id, contest_id, config):
     print(CYAN + "Judging " + contest_id + "_" + problem_id + "..." + COLORRESET)
     for i, case in enumerate(testcases):
         print("case " + str(i+1) + ": ", end="")
-        res = execute(case, config)
+        res = compare(case, config)
         if res[0] == "AC":
             print(GREEN + "AC" + COLORRESET)
         elif res[0] == "WA":
             print(YELLOW + "WA" + COLORRESET)
-            print(RED + " predicted:"+ res[1].rstrip('\r\n') + "\n" + 
-                " result:" + res[2].rstrip('\r\n') + COLORRESET)
+            print(RED + "[output]\n"+ res[1][0].rstrip('\r\n') + "\n" + 
+                "[answer]\n" + res[1][0].rstrip('\r\n') + COLORRESET)
         else:
-            print(YELLOW + "TLE" + COLORRESET)
+            print(YELLOW + res[0] + COLORRESET)
     return ExitStatus.SUCCESS
 
 def execute(case, config):
-    proc = subprocess.Popen(config["language"]["exe_cmd"],stdout=subprocess.PIPE,
-        stdin=subprocess.PIPE, shell=True)    
-    proc.stdin.write(case["input"].encode())
-    proc.stdin.flush()
-    proc.stdout.flush()
     try:
-        proc.wait(2)
-        ans = proc.stdout.read().decode().replace("\r\n","\n")
-        out = case["output"].replace("\r\n","\n")
+        proc = subprocess.run(config["language"]["exe_cmd"], timeout=2, 
+                capture_output=True, text=True, input=case["input"])
+    except subprocess.TimeoutExpired:
+        return "TLE"
+    if proc.returncode != 0:
+        return "RE"
+    else:
+        #out = proc.stdout.replace("\r\n", "\n")
+        return proc.stdout
+
+def compare(case, config):
+        out = execute(case, config)
+        if out == "TLE":
+            return (out, None)
+        if out == "RE":
+            return (out, None)
+
+        ans = case["output"].replace("\r\n","\n")
         if out == ans:
-            return ("AC", ans, out)
+            return ("AC", None)
         elif isfloat(out) and isfloat(ans):
             d = abs(float(out)-float(ans))
             r = d / float(out)
             if d <= 0.000001 and r <= 0.000001:
-                return ("AC", ans, out)
+                return ("AC", None)
             else: 
-                return ("WA", ans, out)
+                return ("WA", (out, ans))
         else:
-            return ("WA", ans, out)
-    except:
-        proc.terminate()
-        return ("TLE", None, None)
+            return ("WA", (out, ans))
 
 
 def compiling(problem_id, config):
     filename = "{id}{ext}".format(id=problem_id, ext=config["language"]["filename_ext"])
-    res = subprocess.run([config["language"]["compile_cmd"], config["language"]["compile_opt"], filename])
+    res = subprocess.run([config["language"]["compile_cmd"], config["language"]["compile_opt"], filename],
+           capture_output=True, text=True)
     if res.returncode != 0:
-        return ExitStatus.UNABLE_TO_EXEC
+        print(YELLOW + "CE" + COLORRESET)
+        print(res.stderr)
+        return ExitStatus.FAILURE
     return ExitStatus.SUCCESS
 
 
 def compare_cases(testcases, problem_id, config):
     status = compiling(problem_id, config)
     if status != ExitStatus.SUCCESS:
-        return status
-    return all(map(lambda case : execute(case, config)[0]=="AC", testcases))
+        return False
+    return all(map(lambda case : compare(case, config)[0]=="AC", testcases))
 
 def testing(problem_id, config):
     if config["language"]["compiling"]:
