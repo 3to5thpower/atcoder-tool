@@ -67,11 +67,17 @@ def submit(codes, problem_id, contest_id, config):
     html.raise_for_status()
     soup = BeautifulSoup(html.text, "lxml")
     csrf_token = soup.find(attrs={"name": "csrf_token"}).get("value")
-    
+    lang_id = -1
     for d in soup.find_all("option"):
-        if "GCC" in d.text and "C++" in d.text:
+        if config["language"]["lang"] in d.text:
             lang_id = d.get("value")
             break
+    if lang_id == -1:
+        print("lang:{lang} seems not be available in {contest}...".format(
+            lang = config["language"]["lang"],
+            contest = contest_id
+        ))
+        return ExitStatus.FAILURE
 
     submit_info = {
         "data.TaskScreenName": info[problem_id]["url"],

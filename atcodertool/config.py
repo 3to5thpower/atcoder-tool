@@ -4,7 +4,7 @@ import os
 CONFIG_PATH = os.path.expanduser("~/.config/atcoder-tool.toml")
 default_config = {
     "language": {
-        "lang": "cpp",
+        "lang": "C++",
         "filename_ext": ".cpp",
         "compiling": True,
         "compile_cmd": "g++",
