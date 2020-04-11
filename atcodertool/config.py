@@ -7,7 +7,9 @@ default_config = {
         "lang": "cpp",
         "filename_ext": ".cpp",
         "compiling": True,
-        "compile_cmd": "g++"
+        "compile_cmd": "g++",
+        "compile_opt": "-std=c++17",
+        "exe_cmd": "./a.out",
     },
     "session": {
         "username": "",
