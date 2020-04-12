@@ -113,7 +113,7 @@ def compare(case, config):
         ans = case["output"].replace("\r\n","\n")
         if out == ans:
             return ("AC", None)
-        elif isfloat(out) and isfloat(ans) ans float(out) != 0:
+        elif isfloat(out) and isfloat(ans) and float(out) != 0:
             d = abs(float(out)-float(ans))
             r = d / float(out)
             if d <= 0.000001 and r <= 0.000001:
