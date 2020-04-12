@@ -121,12 +121,14 @@ def submitting(problem_id, testing):
     filename = "{id}{ext}".format(id=problem_id, ext=config["language"]["filename_ext"])
 
     if testing:
-        print("testing...")
+        print("testing...", end=" ")
         testcase = test.read_case(problem_id, contest_id, config)
         res = test.compare_cases(testcase, problem_id, config)
         if not res:
-            print("test failed.")
+            print(test.RED + "FAILED..." + test.COLORRESET)
             return ExitStatus.FAILURE
+        else:
+            print(test.GREEN + "SUCCESS!" + test.COLORRESET)
     
     with open(filename) as f:
         codes = f.read()

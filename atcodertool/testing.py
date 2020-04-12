@@ -57,7 +57,7 @@ def read_file(file_name):
 def write_file(file_name, testcases):
     """ファイルを書く"""
     targ_path = os.path.join(TESTCASES_PATH, file_name)
-    with open(targ_path, "w") as f:
+    with open(targ_path, "w", newline="\n") as f:
         for i, q in enumerate(testcases):
             f.write("[test case " + str(i) + "]\n")
             f.write("---input---\n")
@@ -86,7 +86,7 @@ def judge(testcases, problem_id, contest_id, config):
         elif res[0] == "WA":
             print(YELLOW + "WA" + COLORRESET)
             print(RED + "[output]\n"+ res[1][0].rstrip('\r\n') + "\n" + 
-                "[answer]\n" + res[1][0].rstrip('\r\n') + COLORRESET)
+                "[answer]\n" + res[1][1].rstrip('\r\n') + COLORRESET)
         else:
             print(YELLOW + res[0] + COLORRESET)
     return ExitStatus.SUCCESS
@@ -109,8 +109,8 @@ def compare(case, config):
             return (out, None)
         if out == "RE":
             return (out, None)
-
-        ans = case["output"]#.replace("\r\n","\n")
+        out = out.replace("\r\n", "\n")
+        ans = case["output"].replace("\r\n","\n")
         if out == ans:
             return ("AC", None)
         elif isfloat(out) and isfloat(ans):
