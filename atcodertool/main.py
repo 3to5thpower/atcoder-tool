@@ -36,12 +36,16 @@ class Run(Command):
 
     def run(self, args):
         config = conf.read_config()
-        filename = "{id}{ext}".format(id=args.problem_id, ext=config["language"]["filename_ext"])
-        res = subprocess.run([config["language"]["compile_cmd"], filename])
-        if res.returncode == 0:
-            res = subprocess.check_output(["./a.out"])
-            print(res.decode())
-        return ExitStatus.SUCCESS
+        stat = test.compiling(args.problem_id, config)
+        if stat == ExitStatus.SUCCESS:
+            print("[input]")
+            res = subprocess.run([config["language"]["exe_cmd"]],
+                    capture_output=True, text=True)
+            print("[output]")
+            print(res.stdout)
+            return ExitStatus.SUCCESS
+        print(test.YELLOW + "RE" + test.COLORRESET)
+        return ExitStatus.FAILURE
 
 
 class Test(Command):

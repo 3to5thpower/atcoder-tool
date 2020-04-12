@@ -113,7 +113,7 @@ def compare(case, config):
         ans = case["output"].replace("\r\n","\n")
         if out == ans:
             return ("AC", None)
-        elif isfloat(out) and isfloat(ans):
+        elif isfloat(out) and isfloat(ans) ans float(out) != 0:
             d = abs(float(out)-float(ans))
             r = d / float(out)
             if d <= 0.000001 and r <= 0.000001:
@@ -125,6 +125,7 @@ def compare(case, config):
 
 
 def compiling(problem_id, config):
+    #print(CYAN + "compiling..." + COLORRESET, end=" ")
     filename = "{id}{ext}".format(id=problem_id, ext=config["language"]["filename_ext"])
     res = subprocess.run([config["language"]["compile_cmd"], config["language"]["compile_opt"], filename],
            capture_output=True, text=True)
@@ -132,6 +133,7 @@ def compiling(problem_id, config):
         print(YELLOW + "CE" + COLORRESET)
         print(res.stderr)
         return ExitStatus.FAILURE
+    #print(GREEN + "SUCCESS!" + COLORRESET)
     return ExitStatus.SUCCESS
 
 
